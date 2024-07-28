@@ -1,0 +1,89 @@
+<!-- var horizontal = d3.scaleBand().domain([0, 1, 2, 3, 4, 5]).range([0, 200])
+var vertical = d3.scaleLinear().domain([0, 42]).range([200, 0]);
+
+var svg = d3.select('svg')
+  .attr('width', 300)
+  .attr('height', 300)
+  .append('g')
+  .attr('transform', 'translate(50,50)');
+
+svg.selectAll('rect')
+  .data(data)
+  .enter()
+  .append('rect')
+  .attr('x', function(d, i) { return horizontal(i); })
+  .attr('y', function(d) { return vertical(d); })
+  .attr('width', horizontal.bandwidth())
+  .attr('height', function(d) { return 200 - vertical(d); }); -->
+
+
+  var margin = {top: 20, right: 20, bottom: 70, left: 40},
+  width = 600 - margin.left - margin.right,
+  height = 300 - margin.top - margin.bottom;
+
+var horizontal = d3.scaleBand()
+  .range([0, width])
+  .padding(0.1);
+
+var vertical = d3.scaleLinear()
+  .range([height, 0]);
+
+var svg = d3.select('svg')
+  .attr('width', width + margin.left + margin.right)
+  .attr('height', height + margin.top + margin.bottom)
+.append('g')
+  .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+d3.csv('movies_1980_2020_30k.csv').then(function(data) {
+
+  data.forEach(function(d) {
+      d.Title = d.Title;
+      d.Rating = +d.Rating;
+  });
+  
+  horizontal.domain(data.map(function(d) { return d.Title; }));
+  vertical.domain([0, d3.max(data, function(d) { return d.Rating; })]);
+  
+  svg.selectAll('.bar')
+      .data(data)
+      .enter().append('rect')
+      .attr('class', 'bar')
+      .attr('x', function(d) { return horizontal(d.Title); })
+      .attr('width', horizontal.bandwidth())
+      .attr('y', function(d) { return vertical(d.Rating); })
+      .attr('height', function(d) { return height - vertical(d.Rating); })
+      .on('mouseover', function(event, d) {
+          tooltip.transition()
+              .duration(200)
+              .style('opacity', .9);
+          tooltip.html(d.Title + "<br/> Rating: " + d.Rating)
+              .style('left', (event.pageX + 5) + 'px')
+              .style('top', (event.pageY - 28) + 'px');
+      })
+      .on('mouseout', function(d) {
+          tooltip.transition()
+              .duration(500)
+              .style('opacity', 0);
+      });
+  
+  svg.append('g')
+      .attr('class', 'x-axis')
+      .attr('transform', 'translate(0,' + height + ')')
+      .call(d3.axisBottom(horizontal))
+      .selectAll('text')
+      .style('text-anchor', 'end')
+      .attr('dx', '-.8em')
+      .attr('dy', '.15em')
+      .attr('transform', 'rotate(-65)');
+  
+  svg.append('g')
+      .attr('class', 'y-axis')
+      .call(d3.axisLeft(vertical));
+  
+  var tooltip = d3.select('body').append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0);
+  
+  }).catch(function(error) {
+  console.error('csv error:', error);
+  });
