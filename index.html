@@ -23,7 +23,7 @@
     </style>
 </head>
 <body>
-    <svg width="800" height="500"></svg>
+    <svg width="900" height="500"></svg>
 
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
@@ -40,7 +40,7 @@
         ];
 
         const svg = d3.select("svg");
-        const margin = {top: 20, right: 30, bottom: 40, left: 40};
+        const margin = {top: 20, right: 30, bottom: 70, left: 50};
         const width = +svg.attr("width") - margin.left - margin.right;
         const height = +svg.attr("height") - margin.top - margin.bottom;
 
@@ -55,10 +55,11 @@
 
         const xAxis = g => g
             .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(x).tickFormat(d => d.substring(0, 5)))
+            .call(d3.axisBottom(x).tickFormat(d => d))
             .selectAll("text")
-            .attr("transform", "rotate(-45)")
-            .style("text-anchor", "end");
+            .attr("transform", "rotate(-65)")
+            .style("text-anchor", "end")
+            .style("font-size", "10px");
 
         const yAxis = g => g
             .attr("transform", `translate(${margin.left},0)`)
