@@ -1,89 +1,100 @@
-<!-- var horizontal = d3.scaleBand().domain([0, 1, 2, 3, 4, 5]).range([0, 200])
-var vertical = d3.scaleLinear().domain([0, 42]).range([200, 0]);
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Ratings Bar Chart</title>
+    <style>
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            font: 12px sans-serif;
+            background: lightsteelblue;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
+            padding: 5px;
+        }
+        .bar {
+            fill: lightskyblue;
+        }
+    </style>
+</head>
+<body>
+    <svg width="960" height="500"></svg>
 
-var svg = d3.select('svg')
-  .attr('width', 300)
-  .attr('height', 300)
-  .append('g')
-  .attr('transform', 'translate(50,50)');
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script>
+        var margin = {top: 20, right: 20, bottom: 70, left: 50},
+            width = 500 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
 
-svg.selectAll('rect')
-  .data(data)
-  .enter()
-  .append('rect')
-  .attr('x', function(d, i) { return horizontal(i); })
-  .attr('y', function(d) { return vertical(d); })
-  .attr('width', horizontal.bandwidth())
-  .attr('height', function(d) { return 200 - vertical(d); }); -->
+        var horizontal = d3.scaleBand()
+            .range([0, width])
+            .padding(0.1);
 
+        var vertical = d3.scaleLinear()
+            .range([height, 0]);
 
-var margin = {top: 20, right: 20, bottom: 70, left: 40},
-    width = 600 - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
+        var svg = d3.select('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+            .append('g')
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-var horizontal = d3.scaleBand()
-    .range([0, width])
-    .padding(0.1);
+        d3.csv('movies_1980_2020_10.csv').then(function(data) {
+            // Debugging: Check if data is loaded
+            console.log(data);
 
-var vertical = d3.scaleLinear()
-    .range([height, 0]);
+            data.forEach(function(d) {
+                d.Title = d.Title;
+                d.Rating = +d.Rating; // Convert Rating to number
+            });
 
-var svg = d3.select('svg')
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-  .append('g')
-    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            horizontal.domain(data.map(function(d) { return d.Title; }));
+            vertical.domain([0, d3.max(data, function(d) { return d.Rating; })]);
 
-d3.csv('movies_1980_2020_30k.csv').then(function(data) {
+            svg.selectAll('.bar')
+                .data(data)
+                .enter().append('rect')
+                .attr('class', 'bar')
+                .attr('x', function(d) { return horizontal(d.Title); })
+                .attr('width', horizontal.bandwidth())
+                .attr('y', function(d) { return vertical(d.Rating); })
+                .attr('height', function(d) { return height - vertical(d.Rating); })
+                .on('mouseover', function(event, d) {
+                    tooltip.transition()
+                        .duration(200)
+                        .style('opacity', .9);
+                    tooltip.html(d.Title + "<br/> Rating: " + d.Rating)
+                        .style('left', (event.pageX + 5) + 'px')
+                        .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function(d) {
+                    tooltip.transition()
+                        .duration(500)
+                        .style('opacity', 0);
+                });
 
-    data.forEach(function(d) {
-        d.Title = d.Title;
-        d.Rating = +d.Rating;
-    });
-    
-    horizontal.domain(data.map(function(d) { return d.Title; }));
-    vertical.domain([0, d3.max(data, function(d) { return d.Rating; })]);
-    
-    svg.selectAll('.bar')
-        .data(data)
-        .enter().append('rect')
-        .attr('class', 'bar')
-        .attr('x', function(d) { return horizontal(d.Title); })
-        .attr('width', horizontal.bandwidth())
-        .attr('y', function(d) { return vertical(d.Rating); })
-        .attr('height', function(d) { return height - vertical(d.Rating); })
-        .on('mouseover', function(event, d) {
-            tooltip.transition()
-                .duration(200)
-                .style('opacity', .9);
-            tooltip.html(d.Title + "<br/> Rating: " + d.Rating)
-                .style('left', (event.pageX + 5) + 'px')
-                .style('top', (event.pageY - 28) + 'px');
-        })
-        .on('mouseout', function(d) {
-            tooltip.transition()
-                .duration(500)
+            svg.append('g')
+                .attr('class', 'x-axis')
+                .attr('transform', 'translate(0,' + height + ')')
+                .call(d3.axisBottom(horizontal))
+                .selectAll('text')
+                .style('text-anchor', 'end')
+                .attr('dx', '-.8em')
+                .attr('dy', '.15em')
+                .attr('transform', 'rotate(-65)');
+
+            svg.append('g')
+                .attr('class', 'y-axis')
+                .call(d3.axisLeft(vertical));
+
+            var tooltip = d3.select('body').append('div')
+                .attr('class', 'tooltip')
                 .style('opacity', 0);
+        }).catch(function(error) {
+            console.error('Error loading the CSV file:', error);
         });
-    
-    svg.append('g')
-        .attr('class', 'x-axis')
-        .attr('transform', 'translate(0,' + height + ')')
-        .call(d3.axisBottom(horizontal))
-        .selectAll('text')
-        .style('text-anchor', 'end')
-        .attr('dx', '-.8em')
-        .attr('dy', '.15em')
-        .attr('transform', 'rotate(-65)');
-    
-    svg.append('g')
-        .attr('class', 'y-axis')
-        .call(d3.axisLeft(vertical));
-    
-    var tooltip = d3.select('body').append('div')
-        .attr('class', 'tooltip')
-        .style('opacity', 0);
-    
-    }).catch(function(error) {
-    console.error('csv error:', error);
-    });
+    </script>
+</body>
+</html>
