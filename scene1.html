@@ -1,100 +1,132 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Movie Ratings Bar Chart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies by Rating Bar Chart</title>
     <style>
+        .bar {
+            fill: steelblue;
+        }
+        .bar:hover {
+            fill: orange;
+        }
+        .axis-label {
+            font-size: 12px;
+            text-anchor: middle;
+        }
+        .chart-title {
+            text-anchor: middle;
+            font-size: 18px;
+            font-weight: bold;
+        }
         .tooltip {
             position: absolute;
-            text-align: center;
-            font: 12px sans-serif;
-            background: lightsteelblue;
-            border: 0px;
-            border-radius: 8px;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-shadow: 0px 0px 5px #aaa;
             pointer-events: none;
-            padding: 5px;
-        }
-        .bar {
-            fill: lightskyblue;
+            visibility: hidden;
         }
     </style>
 </head>
 <body>
-    <svg width="960" height="500"></svg>
+    <svg width="900" height="500"></svg>
+    <div class="tooltip" id="tooltip"></div>
 
-    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
-        var margin = {top: 20, right: 20, bottom: 70, left: 50},
-            width = 500 - margin.left - margin.right,
-            height = 400 - margin.top - margin.bottom;
+        const data = [
+            {Title: "Key entire popular.", Director: "Anthony Becker", Genre: "Horror", "Release Date": "1981-05-12", Duration: 102, Rating: 6.8},
+            {Title: "Gun husband reveal.", Director: "William Johnson", Genre: "Documentary", "Release Date": "2016-06-13", Duration: 92, Rating: 7.6},
+            {Title: "Crime cover.", Director: "Amy Le", Genre: "Drama", "Release Date": "1988-03-22", Duration: 144, Rating: 5.5},
+            {Title: "Challenge.", Director: "Andrea Martinez", Genre: "Romance", "Release Date": "2013-04-01", Duration: 161, Rating: 2.0},
+            {Title: "Close study.", Director: "Michael Rodgers", Genre: "Fantasy", "Release Date": "2012-10-18", Duration: 177, Rating: 3.7},
+            {Title: "Must customer.", Director: "Christina Jimenez", Genre: "Romance", "Release Date": "1997-12-22", Duration: 144, Rating: 5.2},
+            {Title: "Recent example benefit.", Director: "Megan Sims", Genre: "Sci-Fi", "Release Date": "1981-05-10", Duration: 138, Rating: 8.2},
+            {Title: "By product.", Director: "Samantha Anderson", Genre: "Romance", "Release Date": "2015-07-18", Duration: 109, Rating: 8.0},
+            {Title: "When drive not.", Director: "Margaret Murphy", Genre: "Romance", "Release Date": "1992-10-02", Duration: 173, Rating: 6.9}
+        ];
 
-        var horizontal = d3.scaleBand()
-            .range([0, width])
+        const svg = d3.select("svg");
+        const tooltip = d3.select("#tooltip");
+        const margin = {top: 20, right: 30, bottom: 70, left: 50};
+        const width = +svg.attr("width") - margin.left - margin.right;
+        const height = +svg.attr("height") - margin.top - margin.bottom;
+
+        const x = d3.scaleBand()
+            .domain(data.map(d => d.Title))
+            .range([margin.left, width - margin.right])
             .padding(0.1);
 
-        var vertical = d3.scaleLinear()
-            .range([height, 0]);
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.Rating)]).nice()
+            .range([height - margin.bottom, margin.top]);
 
-        var svg = d3.select('svg')
-            .attr('width', width + margin.left + margin.right)
-            .attr('height', height + margin.top + margin.bottom)
-            .append('g')
-            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        const xAxis = g => g
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).tickFormat(d => d))
+            .selectAll("text")
+            .attr("transform", "rotate(-65)")
+            .style("text-anchor", "end")
+            .style("font-size", "10px");
 
-        d3.csv('movies_1980_2020_10.csv').then(function(data) {
-            // Debugging: Check if data is loaded
-            console.log(data);
+        const yAxis = g => g
+            .attr("transform", `translate(${margin.left},0)`)
+            .call(d3.axisLeft(y))
+            .call(g => g.select(".domain").remove());
 
-            data.forEach(function(d) {
-                d.Title = d.Title;
-                d.Rating = +d.Rating; // Convert Rating to number
+        svg.append("g")
+            .selectAll("rect")
+            .data(data)
+            .join("rect")
+            .attr("class", "bar")
+            .attr("x", d => x(d.Title))
+            .attr("y", d => y(d.Rating))
+            .attr("height", d => y(0) - y(d.Rating))
+            .attr("width", x.bandwidth())
+            .on("mouseover", function(event, d) {
+                tooltip.style("visibility", "visible")
+                       .html(`<strong>${d.Title}</strong><br/>
+                              Director: ${d.Director}<br/>
+                              Genre: ${d.Genre}<br/>
+                              Release Date: ${d['Release Date']}<br/>
+                              Duration: ${d.Duration} min<br/>
+                              Rating: ${d.Rating}`);
+            })
+            .on("mousemove", function(event) {
+                tooltip.style("top", (event.pageY - 10) + "px")
+                       .style("left", (event.pageX + 10) + "px");
+            })
+            .on("mouseout", function() {
+                tooltip.style("visibility", "hidden");
             });
 
-            horizontal.domain(data.map(function(d) { return d.Title; }));
-            vertical.domain([0, d3.max(data, function(d) { return d.Rating; })]);
+        svg.append("g")
+            .call(xAxis);
 
-            svg.selectAll('.bar')
-                .data(data)
-                .enter().append('rect')
-                .attr('class', 'bar')
-                .attr('x', function(d) { return horizontal(d.Title); })
-                .attr('width', horizontal.bandwidth())
-                .attr('y', function(d) { return vertical(d.Rating); })
-                .attr('height', function(d) { return height - vertical(d.Rating); })
-                .on('mouseover', function(event, d) {
-                    tooltip.transition()
-                        .duration(200)
-                        .style('opacity', .9);
-                    tooltip.html(d.Title + "<br/> Rating: " + d.Rating)
-                        .style('left', (event.pageX + 5) + 'px')
-                        .style('top', (event.pageY - 28) + 'px');
-                })
-                .on('mouseout', function(d) {
-                    tooltip.transition()
-                        .duration(500)
-                        .style('opacity', 0);
-                });
+        svg.append("g")
+            .call(yAxis);
 
-            svg.append('g')
-                .attr('class', 'x-axis')
-                .attr('transform', 'translate(0,' + height + ')')
-                .call(d3.axisBottom(horizontal))
-                .selectAll('text')
-                .style('text-anchor', 'end')
-                .attr('dx', '-.8em')
-                .attr('dy', '.15em')
-                .attr('transform', 'rotate(-65)');
+        svg.append("text")
+            .attr("class", "chart-title")
+            .attr("x", width / 2)
+            .attr("y", margin.top)
+            .text("Movies by Rating");
 
-            svg.append('g')
-                .attr('class', 'y-axis')
-                .call(d3.axisLeft(vertical));
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("x", -(height / 2))
+            .attr("y", margin.left / 2.5)
+            .attr("transform", "rotate(-90)")
+            .text("Rating");
 
-            var tooltip = d3.select('body').append('div')
-                .attr('class', 'tooltip')
-                .style('opacity', 0);
-        }).catch(function(error) {
-            console.error('Error loading the CSV file:', error);
-        });
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("x", width / 2)
+            .attr("y", height + margin.bottom / 1.5)
+            .text("Movie Title");
     </script>
 </body>
 </html>

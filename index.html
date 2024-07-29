@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movies by Rating Bar Chart</title>
+    <title>Countries by Literacy Rate</title>
     <style>
         .bar {
             fill: steelblue;
@@ -32,101 +32,98 @@
     </style>
 </head>
 <body>
-    <svg width="900" height="500"></svg>
+    <svg width="1000" height="600"></svg>
     <div class="tooltip" id="tooltip"></div>
 
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
-        const data = [
-            {Title: "Key entire popular.", Director: "Anthony Becker", Genre: "Horror", "Release Date": "1981-05-12", Duration: 102, Rating: 6.8},
-            {Title: "Gun husband reveal.", Director: "William Johnson", Genre: "Documentary", "Release Date": "2016-06-13", Duration: 92, Rating: 7.6},
-            {Title: "Crime cover.", Director: "Amy Le", Genre: "Drama", "Release Date": "1988-03-22", Duration: 144, Rating: 5.5},
-            {Title: "Challenge.", Director: "Andrea Martinez", Genre: "Romance", "Release Date": "2013-04-01", Duration: 161, Rating: 2.0},
-            {Title: "Close study.", Director: "Michael Rodgers", Genre: "Fantasy", "Release Date": "2012-10-18", Duration: 177, Rating: 3.7},
-            {Title: "Must customer.", Director: "Christina Jimenez", Genre: "Romance", "Release Date": "1997-12-22", Duration: 144, Rating: 5.2},
-            {Title: "Recent example benefit.", Director: "Megan Sims", Genre: "Sci-Fi", "Release Date": "1981-05-10", Duration: 138, Rating: 8.2},
-            {Title: "By product.", Director: "Samantha Anderson", Genre: "Romance", "Release Date": "2015-07-18", Duration: 109, Rating: 8.0},
-            {Title: "When drive not.", Director: "Margaret Murphy", Genre: "Romance", "Release Date": "1992-10-02", Duration: 173, Rating: 6.9}
-        ];
-
-        const svg = d3.select("svg");
-        const tooltip = d3.select("#tooltip");
-        const margin = {top: 20, right: 30, bottom: 70, left: 50};
-        const width = +svg.attr("width") - margin.left - margin.right;
-        const height = +svg.attr("height") - margin.top - margin.bottom;
-
-        const x = d3.scaleBand()
-            .domain(data.map(d => d.Title))
-            .range([margin.left, width - margin.right])
-            .padding(0.1);
-
-        const y = d3.scaleLinear()
-            .domain([0, d3.max(data, d => d.Rating)]).nice()
-            .range([height - margin.bottom, margin.top]);
-
-        const xAxis = g => g
-            .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(x).tickFormat(d => d))
-            .selectAll("text")
-            .attr("transform", "rotate(-65)")
-            .style("text-anchor", "end")
-            .style("font-size", "10px");
-
-        const yAxis = g => g
-            .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y))
-            .call(g => g.select(".domain").remove());
-
-        svg.append("g")
-            .selectAll("rect")
-            .data(data)
-            .join("rect")
-            .attr("class", "bar")
-            .attr("x", d => x(d.Title))
-            .attr("y", d => y(d.Rating))
-            .attr("height", d => y(0) - y(d.Rating))
-            .attr("width", x.bandwidth())
-            .on("mouseover", function(event, d) {
-                tooltip.style("visibility", "visible")
-                       .html(`<strong>${d.Title}</strong><br/>
-                              Director: ${d.Director}<br/>
-                              Genre: ${d.Genre}<br/>
-                              Release Date: ${d['Release Date']}<br/>
-                              Duration: ${d.Duration} min<br/>
-                              Rating: ${d.Rating}`);
-            })
-            .on("mousemove", function(event) {
-                tooltip.style("top", (event.pageY - 10) + "px")
-                       .style("left", (event.pageX + 10) + "px");
-            })
-            .on("mouseout", function() {
-                tooltip.style("visibility", "hidden");
+        // Load the CSV data
+        d3.csv('Literacy Rate.csv').then(data => {
+            // Parse data
+            data.forEach(d => {
+                d.LiteracyRate = +d['Literacy Rate'];
+                d.Year = +d.Year;
             });
 
-        svg.append("g")
-            .call(xAxis);
+            // Sort the data by LiteracyRate in descending order
+            data.sort((a, b) => b.LiteracyRate - a.LiteracyRate);
 
-        svg.append("g")
-            .call(yAxis);
+            const svg = d3.select("svg");
+            const tooltip = d3.select("#tooltip");
+            const margin = {top: 20, right: 30, bottom: 120, left: 80};
+            const width = +svg.attr("width") - margin.left - margin.right;
+            const height = +svg.attr("height") - margin.top - margin.bottom;
 
-        svg.append("text")
-            .attr("class", "chart-title")
-            .attr("x", width / 2)
-            .attr("y", margin.top)
-            .text("Movies by Rating");
+            const x = d3.scaleBand()
+                .domain(data.map(d => d.Country))
+                .range([margin.left, width - margin.right])
+                .padding(0.1);
 
-        svg.append("text")
-            .attr("class", "axis-label")
-            .attr("x", -(height / 2))
-            .attr("y", margin.left / 2.5)
-            .attr("transform", "rotate(-90)")
-            .text("Rating");
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.LiteracyRate)]).nice()
+                .range([height - margin.bottom, margin.top]);
 
-        svg.append("text")
-            .attr("class", "axis-label")
-            .attr("x", width / 2)
-            .attr("y", height + margin.bottom / 1.5)
-            .text("Movie Title");
+            const xAxis = g => g
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "rotate(-65)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            const yAxis = g => g
+                .attr("transform", `translate(${margin.left},0)`)
+                .call(d3.axisLeft(y))
+                .call(g => g.select(".domain").remove());
+
+            svg.append("g")
+                .selectAll("rect")
+                .data(data)
+                .join("rect")
+                .attr("class", "bar")
+                .attr("x", d => x(d.Country))
+                .attr("y", d => y(d.LiteracyRate))
+                .attr("height", d => y(0) - y(d.LiteracyRate))
+                .attr("width", x.bandwidth())
+                .on("mouseover", function(event, d) {
+                    tooltip.style("visibility", "visible")
+                           .html(`<strong>${d.Country}</strong><br/>
+                                  Literacy Rate: ${d.LiteracyRate}<br/>
+                                  Year: ${d.Year}`);
+                })
+                .on("mousemove", function(event) {
+                    tooltip.style("top", (event.pageY - 10) + "px")
+                           .style("left", (event.pageX + 10) + "px");
+                })
+                .on("mouseout", function() {
+                    tooltip.style("visibility", "hidden");
+                });
+
+            svg.append("g")
+                .call(xAxis);
+
+            svg.append("g")
+                .call(yAxis);
+
+            svg.append("text")
+                .attr("class", "chart-title")
+                .attr("x", width / 2)
+                .attr("y", margin.top)
+                .text("Countries by Literacy Rate");
+
+            svg.append("text")
+                .attr("class", "axis-label")
+                .attr("x", -(height / 2))
+                .attr("y", margin.left / 2.5)
+                .attr("transform", "rotate(-90)")
+                .text("Literacy Rate");
+
+            svg.append("text")
+                .attr("class", "axis-label")
+                .attr("x", width / 2)
+                .attr("y", height + margin.bottom / 1.5)
+                .text("Country");
+        });
     </script>
 </body>
 </html>
