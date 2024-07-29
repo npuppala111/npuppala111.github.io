@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top 20 Countries by Literacy Rate</title>
+    <title>Top 20 Countries by Lowest Literacy Rate</title>
     <style>
         body {
             margin: 0;
@@ -54,8 +54,8 @@
                 d.Year = +d.Year;
             });
 
-            // Sort the data by LiteracyRate in descending order and limit to top 20
-            data.sort((a, b) => b.LiteracyRate - a.LiteracyRate);
+            // Sort the data by LiteracyRate in ascending order and limit to top 20
+            data.sort((a, b) => a.LiteracyRate - b.LiteracyRate);
             data = data.slice(0, 20);
 
             const svg = d3.select("svg");
@@ -119,7 +119,7 @@
                 .attr("class", "chart-title")
                 .attr("x", width / 2)
                 .attr("y", margin.top / 2)
-                .text("Top 20 Countries by Literacy Rate");
+                .text("Top 20 Countries by Lowest Literacy Rate");
         });
     </script>
 </body>
