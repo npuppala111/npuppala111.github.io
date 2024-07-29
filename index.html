@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Countries by Literacy Rate</title>
+    <title>Top 20 Countries by Literacy Rate</title>
     <style>
         body {
             margin: 0;
@@ -41,7 +41,7 @@
     </style>
 </head>
 <body>
-    <svg width="1200" height="700"></svg>
+    <svg width="1200" height="800"></svg>
     <div class="tooltip" id="tooltip"></div>
 
     <script src="https://d3js.org/d3.v6.min.js"></script>
@@ -54,43 +54,47 @@
                 d.Year = +d.Year;
             });
 
-            // Sort the data by LiteracyRate in descending order
+            // Sort the data by LiteracyRate in descending order and limit to top 20
             data.sort((a, b) => b.LiteracyRate - a.LiteracyRate);
+            data = data.slice(0, 20);
 
             const svg = d3.select("svg");
             const tooltip = d3.select("#tooltip");
-            const margin = {top: 60, right: 40, bottom: 40, left: 200};
+            const margin = {top: 60, right: 40, bottom: 120, left: 80};
             const width = +svg.attr("width") - margin.left - margin.right;
             const height = +svg.attr("height") - margin.top - margin.bottom;
 
-            const y = d3.scaleBand()
+            const x = d3.scaleBand()
                 .domain(data.map(d => d.Country))
-                .range([margin.top, height - margin.bottom])
+                .range([margin.left, width - margin.right])
                 .padding(0.1);
 
-            const x = d3.scaleLinear()
+            const y = d3.scaleLinear()
                 .domain([0, d3.max(data, d => d.LiteracyRate)]).nice()
-                .range([margin.left, width - margin.right]);
+                .range([height - margin.bottom, margin.top]);
 
             const xAxis = g => g
-                .attr("transform", `translate(0,${margin.top})`)
-                .call(d3.axisTop(x))
-                .call(g => g.select(".domain").remove());
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "12px");
 
             const yAxis = g => g
                 .attr("transform", `translate(${margin.left},0)`)
-                .call(d3.axisLeft(y).tickSizeOuter(0))
-                .call(g => g.selectAll(".tick text").call(wrap, margin.left - 10));
+                .call(d3.axisLeft(y))
+                .call(g => g.select(".domain").remove());
 
             svg.append("g")
                 .selectAll("rect")
                 .data(data)
                 .join("rect")
                 .attr("class", "bar")
-                .attr("x", d => x(0))
-                .attr("y", d => y(d.Country))
-                .attr("height", y.bandwidth())
-                .attr("width", d => x(d.LiteracyRate) - x(0))
+                .attr("x", d => x(d.Country))
+                .attr("y", d => y(d.LiteracyRate))
+                .attr("height", d => y(0) - y(d.LiteracyRate))
+                .attr("width", x.bandwidth())
                 .on("mouseover", function(event, d) {
                     tooltip.style("visibility", "visible")
                            .html(`<strong>${d.Country}</strong><br/>
@@ -115,31 +119,7 @@
                 .attr("class", "chart-title")
                 .attr("x", width / 2)
                 .attr("y", margin.top / 2)
-                .text("Countries by Literacy Rate");
-
-            function wrap(text, width) {
-                text.each(function() {
-                    var text = d3.select(this),
-                        words = text.text().split(/\s+/).reverse(),
-                        word,
-                        line = [],
-                        lineNumber = 0,
-                        lineHeight = 1.1, // ems
-                        y = text.attr("y"),
-                        dy = parseFloat(text.attr("dy")),
-                        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
-                    while (word = words.pop()) {
-                        line.push(word);
-                        tspan.text(line.join(" "));
-                        if (tspan.node().getComputedTextLength() > width) {
-                            line.pop();
-                            tspan.text(line.join(" "));
-                            line = [word];
-                            tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
-                        }
-                    }
-                });
-            }
+                .text("Top 20 Countries by Literacy Rate");
         });
     </script>
 </body>
