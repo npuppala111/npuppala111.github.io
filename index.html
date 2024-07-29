@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,10 +15,10 @@
             background-color: #f9f9f9;
         }
         .bar {
-            fill: steelblue;
+            fill: lightblue;
         }
         .bar:hover {
-            fill: orange;
+            fill: lightgreen;
         }
         .axis-label {
             font-size: 14px;
@@ -32,9 +32,8 @@
         .tooltip {
             position: absolute;
             background-color: white;
-            border: 1px solid #ccc;
+            border: 1px solid lightgray;
             padding: 10px;
-            box-shadow: 0px 0px 5px #aaa;
             pointer-events: none;
             visibility: hidden;
         }
@@ -46,15 +45,12 @@
 
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
-        // Load the CSV data
         d3.csv('Literacy Rate.csv').then(data => {
-            // Parse data
             data.forEach(d => {
                 d.LiteracyRate = +d['Literacy Rate'];
                 d.Year = +d.Year;
             });
 
-            // Sort the data by LiteracyRate in ascending order and limit to top 20
             data.sort((a, b) => a.LiteracyRate - b.LiteracyRate);
             data = data.slice(0, 20);
 
