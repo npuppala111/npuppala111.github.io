@@ -37,14 +37,32 @@
             pointer-events: none;
             visibility: hidden;
         }
+        .button-container {
+            margin-top: 20px;
+        }
+        .navigate-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: darkolivegreen;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <svg width="1200" height="800"></svg>
     <div class="tooltip" id="tooltip"></div>
+    <div class="button-container">
+        <button class="navigate-button" onclick="goToScene1()">Next</button>
+    </div>
 
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
+        function goToScene1() {
+            window.location.href = 'scene1.html';
+        }
         d3.csv('Literacy Rate.csv').then(data => {
             data.forEach(d => {
                 d.LiteracyRate = +d['Literacy Rate'];

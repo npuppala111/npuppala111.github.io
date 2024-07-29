@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top 20 Countries by Literacy Rate</title>
+    <title>Top 20 Countries by Highest Literacy Rate</title>
     <style>
         body {
             margin: 0;
@@ -11,6 +11,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
             height: 100vh;
             background-color: #f9f9f9;
         }
@@ -38,14 +39,37 @@
             pointer-events: none;
             visibility: hidden;
         }
+        .button-container {
+            margin-top: 20px;
+        }
+        .navigate-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .navigate-button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <svg width="1200" height="800"></svg>
     <div class="tooltip" id="tooltip"></div>
+    <div class="button-container">
+        <button class="navigate-button" onclick="goToScene2()">Next</button>
+    </div>
 
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
+        // Function to navigate to Scene 1
+        function goToScene2() {
+            window.location.href = 'scene2.html';
+        }
+
         // Load the CSV data
         d3.csv('Literacy Rate.csv').then(data => {
             // Parse data
@@ -119,7 +143,7 @@
                 .attr("class", "chart-title")
                 .attr("x", width / 2)
                 .attr("y", margin.top / 2)
-                .text("Top 20 Countries by Literacy Rate");
+                .text("Top 20 Countries by Highest Literacy Rate");
         });
     </script>
 </body>
